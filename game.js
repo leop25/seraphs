@@ -3288,6 +3288,12 @@ function endGame() {
     document.getElementById('finalScore').textContent = `Pontuação Final: ${gameState.score}`;
     document.getElementById('finalWave').textContent = `Onda Alcançada: ${gameState.wave}`;
     document.getElementById('soulsEarned').textContent = `Almas Ganhas: ${Math.floor(gameState.score / 100)}`;
+    
+    // Reset ranking UI
+    document.getElementById('nameInput').classList.remove('hidden');
+    document.getElementById('scoreSubmitted').classList.add('hidden');
+    document.getElementById('playerName').value = '';
+    
     document.getElementById('gameOver').classList.remove('hidden');
 }
 
@@ -3772,6 +3778,177 @@ document.getElementById('restartGame').addEventListener('click', () => {
     initializeTerrain();
     
     console.log('Jogo resetado completamente');
+});
+
+// Ranking System Functions
+async function submitScore(playerName, score, wave) {
+    try {
+        if (!window.firebaseDB) {
+            throw new Error('Firebase não carregado');
+        }
+
+        const { db, collection, addDoc } = window.firebaseDB;
+        
+        const scoreData = {
+            playerName: playerName.trim().substring(0, 20), // Limit name length
+            score: score,
+            wave: wave,
+            timestamp: new Date(),
+            staff: gameState.selectedStaff,
+            hat: gameState.selectedHat
+        };
+
+        await addDoc(collection(db, 'rankings'), scoreData);
+        
+        console.log('Pontuação enviada com sucesso!');
+        return true;
+    } catch (error) {
+        console.error('Erro ao enviar pontuação:', error);
+        return false;
+    }
+}
+
+async function loadRanking() {
+    try {
+        if (!window.firebaseDB) {
+            throw new Error('Firebase não carregado');
+        }
+
+        const { db, collection, getDocs, query, orderBy, limit } = window.firebaseDB;
+        
+        const rankingQuery = query(
+            collection(db, 'rankings'),
+            orderBy('score', 'desc'),
+            limit(50)
+        );
+        
+        const querySnapshot = await getDocs(rankingQuery);
+        const rankings = [];
+        
+        querySnapshot.forEach((doc) => {
+            rankings.push(doc.data());
+        });
+        
+        return rankings;
+    } catch (error) {
+        console.error('Erro ao carregar ranking:', error);
+        return [];
+    }
+}
+
+async function loadAccessCount() {
+    try {
+        if (!window.firebaseDB) {
+            throw new Error('Firebase não carregado');
+        }
+
+        const { db, doc, getDoc } = window.firebaseDB;
+        
+        const statsRef = doc(db, 'stats', 'gameAccess');
+        const docSnap = await getDoc(statsRef);
+        
+        if (docSnap.exists()) {
+            return docSnap.data().totalAccess || 0;
+        } else {
+            return 0;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar contagem de acessos:', error);
+        return 0;
+    }
+}
+
+function displayRanking(rankings, accessCount) {
+    const rankingList = document.getElementById('rankingList');
+    const totalAccessSpan = document.getElementById('totalAccess');
+    
+    totalAccessSpan.textContent = accessCount.toLocaleString();
+    
+    if (rankings.length === 0) {
+        rankingList.innerHTML = '<p>Nenhuma pontuação encontrada.</p>';
+        return;
+    }
+    
+    let html = '';
+    rankings.forEach((entry, index) => {
+        const position = index + 1;
+        const date = entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleDateString('pt-BR') : 'Data desconhecida';
+        const staffIcon = classData[entry.staff]?.icon || '🪄';
+        const hatIcon = traitData[entry.hat]?.icon || '🎩';
+        
+        let itemClass = 'ranking-item';
+        if (position === 1) itemClass += ' top1';
+        else if (position <= 3) itemClass += ' top3';
+        
+        html += `
+            <div class="${itemClass}">
+                <span class="ranking-position">#${position}</span>
+                <span class="ranking-name">${entry.playerName} ${staffIcon}${hatIcon}</span>
+                <span class="ranking-score">${entry.score.toLocaleString()}</span>
+                <span class="ranking-wave">Onda ${entry.wave}</span>
+            </div>
+        `;
+    });
+    
+    rankingList.innerHTML = html;
+}
+
+// Event Listeners for Ranking
+document.getElementById('submitScore').addEventListener('click', async () => {
+    const playerName = document.getElementById('playerName').value.trim();
+    
+    if (!playerName) {
+        alert('Por favor, digite seu nome!');
+        return;
+    }
+    
+    if (playerName.length > 20) {
+        alert('Nome muito longo! Máximo 20 caracteres.');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitScore');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+    
+    const success = await submitScore(playerName, gameState.score, gameState.wave);
+    
+    if (success) {
+        document.getElementById('nameInput').classList.add('hidden');
+        document.getElementById('scoreSubmitted').classList.remove('hidden');
+    } else {
+        alert('Erro ao enviar pontuação. Tente novamente.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar Pontuação';
+    }
+});
+
+document.getElementById('viewRanking').addEventListener('click', async () => {
+    document.getElementById('rankingModal').classList.remove('hidden');
+    document.getElementById('rankingList').innerHTML = '<p>Carregando ranking...</p>';
+    
+    const [rankings, accessCount] = await Promise.all([
+        loadRanking(),
+        loadAccessCount()
+    ]);
+    
+    displayRanking(rankings, accessCount);
+});
+
+document.getElementById('closeRanking').addEventListener('click', () => {
+    document.getElementById('rankingModal').classList.add('hidden');
+});
+
+document.getElementById('viewRankingMenu').addEventListener('click', async () => {
+    document.getElementById('rankingModal').classList.remove('hidden');
+    document.getElementById('rankingList').innerHTML = '<p>Carregando ranking...</p>';
+    
+    const [rankings, accessCount] = await Promise.all([
+        loadRanking(),
+        loadAccessCount()
+    ]);
+    
+    displayRanking(rankings, accessCount);
 });
 
 // Initialize

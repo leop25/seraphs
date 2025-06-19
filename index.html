@@ -133,6 +133,7 @@
                         <div class="button-container">
                             <button id="startGame" class="start-button" disabled>Entrar na Arena</button>
                             <button id="nightmareChallenge" class="nightmare-button" disabled>🔥 Desafio Pesadelo</button>
+                            <button id="viewRankingMenu" class="ranking-button">🏆 Ver Ranking Global</button>
                         </div>
                     </div>
                 </div>
@@ -145,11 +146,91 @@
                 <p id="finalScore">Pontuação Final: 0</p>
                 <p id="finalWave">Onda Alcançada: 1</p>
                 <p id="soulsEarned">Almas Ganhas: 0</p>
+                
+                <div id="nameInput" class="name-input-section">
+                    <p>Digite seu nome para o ranking:</p>
+                    <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
+                    <button id="submitScore">Enviar Pontuação</button>
+                </div>
+                
+                <div id="scoreSubmitted" class="hidden">
+                    <p>✅ Pontuação enviada com sucesso!</p>
+                </div>
+                
+                <button id="viewRanking">🏆 Ver Ranking</button>
                 <button id="restartGame">Jogar Novamente</button>
+            </div>
+        </div>
+        
+        <div id="rankingModal" class="modal hidden">
+            <div class="modal-content ranking-modal">
+                <h2>🏆 Ranking Global</h2>
+                <div id="rankingList">
+                    <p>Carregando ranking...</p>
+                </div>
+                <div id="accessCount" class="access-info">
+                    <p>Total de acessos: <span id="totalAccess">-</span></p>
+                </div>
+                <button id="closeRanking">Fechar</button>
             </div>
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, doc, updateDoc, increment, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7ImhXMw4Iy0Wr8hWpHOMjFeaJaoqFv1Q",
+            authDomain: "seraphs-fffe0.firebaseapp.com",
+            projectId: "seraphs-fffe0",
+            storageBucket: "seraphs-fffe0.firebasestorage.app",
+            messagingSenderId: "986763980444",
+            appId: "1:986763980444:web:c29ca31495dac852b3c759"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase functions available globally
+        window.firebaseDB = {
+            db,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            orderBy,
+            limit,
+            doc,
+            updateDoc,
+            increment,
+            getDoc,
+            setDoc
+        };
+
+        // Register page access
+        window.addEventListener('load', async () => {
+            try {
+                const statsRef = doc(db, 'stats', 'gameAccess');
+                await updateDoc(statsRef, {
+                    totalAccess: increment(1),
+                    lastAccess: new Date()
+                }).catch(async () => {
+                    // If document doesn't exist, create it
+                    await setDoc(statsRef, {
+                        totalAccess: 1,
+                        lastAccess: new Date()
+                    });
+                });
+                console.log('Acesso registrado');
+            } catch (error) {
+                console.error('Erro ao registrar acesso:', error);
+            }
+        });
+    </script>
     <script src="game.js"></script>
 </body>
 </html> 
