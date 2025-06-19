@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seraph's Arena - Jogo Roguelike</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameUI">
+            <div id="topUI">
+                <div id="healthBar">
+                    <div id="healthFill"></div>
+                    <span id="healthText">120/120</span>
+                </div>
+                <div id="waveCounter">
+                    <span id="waveText">Onda: 1</span>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+        
+        <div id="cardSelection" class="modal hidden">
+            <div class="modal-content">
+                <h2>Escolha uma Carta</h2>
+                <div id="cardContainer">
+                    <!-- Cards will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameMenu" class="modal">
+            <div class="character-selection-screen">
+                <!-- Header -->
+                <div class="header-section">
+                    <div class="title-bar">
+                        <div class="title-text">Selecione uma Classe para seu Personagem</div>
+                    </div>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="main-content">
+                    <!-- Left Panel - Class List -->
+                    <div class="class-list-panel">
+                        <div class="panel-header">Classes</div>
+                        <div class="class-list">
+                            <div class="class-item staff-btn" data-staff="wizard">
+                                <div class="class-icon">🪄</div>
+                                <div class="class-name">Mago de Batalha</div>
+                            </div>
+                            <div class="class-item staff-btn" data-staff="emerald">
+                                <div class="class-icon">💚</div>
+                                <div class="class-name">Rastreador</div>
+                            </div>
+                            <div class="class-item staff-btn" data-staff="trident">
+                                <div class="class-icon">🔱</div>
+                                <div class="class-name">Destruidor</div>
+                            </div>
+                            <div class="class-item staff-btn" data-staff="boom">
+                                <div class="class-icon">💥</div>
+                                <div class="class-name">Demolidor</div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-header" style="margin-top: 20px;">Características</div>
+                        <div class="class-list">
+                            <div class="class-item hat-btn" data-hat="wizard">
+                                <div class="class-icon">🎩</div>
+                                <div class="class-name">Equilibrado</div>
+                            </div>
+                            <div class="class-item hat-btn" data-hat="helmet">
+                                <div class="class-icon">⛑️</div>
+                                <div class="class-name">Guardião</div>
+                            </div>
+                            <div class="class-item hat-btn" data-hat="propeller">
+                                <div class="class-icon">🚁</div>
+                                <div class="class-name">Veloz</div>
+                            </div>
+                            <div class="class-item hat-btn" data-hat="challenger">
+                                <div class="class-icon">👑</div>
+                                <div class="class-name">Berserker</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Panel - Description -->
+                    <div class="description-panel">
+                        <div class="character-portrait">
+                            <div class="portrait-frame">
+                                <div class="portrait-image" id="characterPortrait">
+                                    <div class="portrait-placeholder">Selecione uma classe</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="description-content">
+                            <div class="description-text" id="descriptionText">
+                                <p>Escolha seu estilo de combate. Cada classe oferece habilidades únicas adequadas para diferentes situações de batalha.</p>
+                                <p>Selecione uma classe do painel esquerdo para ver informações detalhadas sobre suas habilidades e estatísticas.</p>
+                            </div>
+                            
+                            <div class="stats-section" id="statsSection" style="display: none;">
+                                <div class="stat-line">
+                                    <span class="stat-label">Dano:</span>
+                                    <span class="stat-value" id="statDamage">-</span>
+                                </div>
+                                <div class="stat-line">
+                                    <span class="stat-label">Especial:</span>
+                                    <span class="stat-value" id="statSpecial">-</span>
+                                </div>
+                                <div class="stat-line">
+                                    <span class="stat-label">Vida:</span>
+                                    <span class="stat-value" id="statHealth">-</span>
+                                </div>
+                                <div class="stat-line">
+                                    <span class="stat-label">Velocidade:</span>
+                                    <span class="stat-value" id="statSpeed">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="selection-status">
+                            <div class="status-line">
+                                <span>Classe:</span> <span id="selectedStaffName">Nenhuma Selecionada</span>
+                            </div>
+                            <div class="status-line">
+                                <span>Característica:</span> <span id="selectedHatName">Nenhuma Selecionada</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-container">
+                            <button id="startGame" class="start-button" disabled>Entrar na Arena</button>
+                            <button id="nightmareChallenge" class="nightmare-button" disabled>🔥 Desafio Pesadelo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="modal hidden">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <p id="finalScore">Pontuação Final: 0</p>
+                <p id="finalWave">Onda Alcançada: 1</p>
+                <p id="soulsEarned">Almas Ganhas: 0</p>
+                <button id="restartGame">Jogar Novamente</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 

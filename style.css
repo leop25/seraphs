@@ -1,0 +1,625 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Centralização do jogo */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* mantém modais centralizados verticalmente */
+    margin: 0;
+    font-family: 'Press Start 2P', 'Orbitron', monospace;
+    background: #0a0a0a;
+    color: #ffffff;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+#gameContainer {
+    position: relative;
+    width: 1280px; /* igual ao width do canvas */
+    height: 720px; /* igual ao height do canvas */
+    display: block;
+    background: radial-gradient(circle at center, #222222, #000000);
+}
+
+#gameCanvas {
+    margin: 0;
+    display: block;
+    background: #000000;
+    border: 2px solid #666666;
+    box-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.2),
+        inset 0 0 100px rgba(0, 0, 0, 0.5);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+
+
+#gameUI {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#topUI {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    pointer-events: none;
+}
+
+#healthBar {
+    position: relative;
+    width: 200px;
+    height: 30px;
+    background: #333;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#healthFill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff0000, #ff4444);
+    transition: width 0.3s ease;
+    width: 100%;
+}
+
+#healthText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: normal;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    font-family: 'Press Start 2P', monospace;
+}
+
+#waveCounter {
+    display: flex;
+    align-items: center;
+}
+
+#waveCounter span {
+    font-size: 16px;
+    font-weight: normal;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.7);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid #fff;
+    font-family: 'Press Start 2P', monospace;
+}
+
+#waveInfo, #scoreInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+#waveInfo span, #scoreInfo span {
+    font-size: 12px;
+    font-weight: normal;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+/* Character Selection Screen */
+.character-selection-screen {
+    width: 90vw;
+    height: 85vh;
+    max-width: 1000px;
+    background: #000;
+    border: 3px solid #fff;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Press Start 2P', monospace;
+}
+
+/* Header Section */
+.header-section {
+    border-bottom: 2px solid #fff;
+    background: #000;
+}
+
+.title-bar {
+    padding: 15px;
+    background: #000;
+    border-bottom: 1px solid #fff;
+}
+
+.title-text {
+    font-size: 16px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* Main Content Layout */
+.main-content {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Left Panel - Class List */
+.class-list-panel {
+    width: 250px;
+    border-right: 2px solid #fff;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    padding: 12px;
+    background: #000;
+    border-bottom: 1px solid #fff;
+    font-size: 14px;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+}
+
+.class-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.class-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background: #000;
+    color: #fff;
+}
+
+.class-item:hover {
+    background: #222;
+}
+
+.class-item.selected {
+    background: #fff;
+    color: #000;
+}
+
+.class-icon {
+    font-size: 16px;
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+}
+
+.class-name {
+    font-size: 12px;
+    flex: 1;
+}
+
+/* Right Panel - Description */
+.description-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    padding: 20px;
+}
+
+.character-portrait {
+    margin-bottom: 20px;
+}
+
+.portrait-frame {
+    width: 120px;
+    height: 120px;
+    border: 2px solid #fff;
+    margin: 0 auto;
+    background: #000;
+}
+
+.portrait-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    background: #111;
+}
+
+.portrait-placeholder {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
+.description-content {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.description-text {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.description-text p {
+    margin-bottom: 8px;
+}
+
+.stats-section {
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid #333;
+    background: #111;
+}
+
+.stat-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 10px;
+}
+
+.stat-label {
+    color: #aaa;
+}
+
+.stat-value {
+    color: #fff;
+}
+
+.selection-status {
+    padding: 12px;
+    border: 1px solid #fff;
+    background: #111;
+    margin-bottom: 15px;
+}
+
+.status-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #ccc;
+}
+
+.status-line span:last-child {
+    color: #fff;
+}
+
+.start-button {
+    padding: 12px 24px;
+    background: #000;
+    border: 2px solid #fff;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: center;
+}
+
+.start-button:hover:not(:disabled) {
+    background: #fff;
+    color: #000;
+}
+
+.start-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.nightmare-button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #660000, #000000);
+    border: 2px solid #ff4444;
+    color: #ff4444;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+}
+
+.nightmare-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff4444, #660000);
+    color: #ffffff;
+    box-shadow: 0 0 25px rgba(255, 68, 68, 0.6);
+    transform: translateY(-2px);
+    animation: nightmareGlow 1s ease-in-out infinite alternate;
+}
+
+.nightmare-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@keyframes nightmareGlow {
+    0% { 
+        box-shadow: 0 0 25px rgba(255, 68, 68, 0.6);
+        filter: brightness(1);
+    }
+    100% { 
+        box-shadow: 0 0 35px rgba(255, 68, 68, 0.8);
+        filter: brightness(1.2);
+    }
+}
+
+#restartGame {
+    padding: 15px 20px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#restartGame:hover {
+    background: #fff;
+    color: #000;
+}
+
+#cardContainer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.card {
+    width: 180px;
+    height: 250px;
+    background: linear-gradient(135deg, #000000, #111111);
+    border: 3px solid #ffffff;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    position: relative;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.05);
+    border-color: #ffffff;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    animation: cardGlow 1s ease-in-out infinite alternate;
+}
+
+.card.legendary {
+    border-color: #ffff00;
+    box-shadow: 0 0 25px rgba(255, 255, 0, 0.4);
+    background: linear-gradient(135deg, #1a1a00, #000000);
+}
+
+.card.legendary:hover {
+    box-shadow: 0 0 35px rgba(255, 255, 0, 0.6);
+    border-color: #ffff00;
+}
+
+.card.epic {
+    border-color: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.card.epic:hover {
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+    border-color: #ff00ff;
+}
+
+@keyframes cardGlow {
+    0% { box-shadow: inherit; }
+    100% { filter: brightness(1.2); }
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.card-title {
+    font-size: 12px;
+    font-weight: normal;
+    color: #ffffff;
+    text-align: left;
+    font-family: 'Press Start 2P', monospace;
+    flex-grow: 1;
+}
+
+.card-description {
+    font-size: 10px;
+    color: #cccccc;
+    line-height: 1.6;
+    flex-grow: 1;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    margin: 8px 0;
+}
+
+.card-rarity {
+    font-size: 8px;
+    font-weight: normal;
+    text-align: center;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Press Start 2P', monospace;
+    min-width: 50px;
+}
+
+.card-rarity.common {
+    background: #666666;
+    color: #ffffff;
+    border: 1px solid #888888;
+}
+
+.card-rarity.uncommon {
+    background: #00ff00;
+    color: #000000;
+    border: 1px solid #00aa00;
+}
+
+.card-rarity.epic {
+    background: #ff00ff;
+    color: #ffffff;
+    border: 1px solid #aa00aa;
+}
+
+.card-rarity.legendary {
+    background: #ffff00;
+    color: #000000;
+    border: 1px solid #aaaa00;
+    animation: legendaryGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes legendaryGlow {
+    0% { box-shadow: 0 0 5px rgba(255, 255, 0, 0.5); }
+    100% { box-shadow: 0 0 15px rgba(255, 255, 0, 0.8); }
+}
+
+.card-level {
+    font-size: 9px;
+    color: #00ff00;
+    text-align: center;
+    margin-top: 5px;
+    padding: 3px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    border-radius: 3px;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.card-owned {
+    font-size: 9px;
+    color: #ff6666;
+    text-align: center;
+    margin-top: 5px;
+    padding: 3px;
+    background: rgba(255, 100, 100, 0.1);
+    border: 1px solid #ff6666;
+    border-radius: 3px;
+    font-family: 'Press Start 2P', monospace;
+}
+
+#gameOver .modal-content p {
+    font-size: 14px;
+    margin: 10px 0;
+    color: #cccccc;
+    font-family: 'Press Start 2P', monospace;
+    font-weight: normal;
+}
+
+#finalScore {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+#finalWave {
+    color: #cccccc !important;
+    font-weight: bold;
+}
+
+#soulsEarned {
+    color: #aaaaaa !important;
+    font-weight: bold;
+}
+
+/* Responsive design */
+@media (max-width: 1300px) {
+    #gameCanvas {
+        width: 100vw;
+        height: auto;
+        max-height: 100vh;
+    }
+}
+
+@media (max-width: 768px) {
+    .selection-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .modal-content h1 {
+        font-size: 2em;
+    }
+    
+    #cardContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .card {
+        width: 200px;
+    }
+} 
