@@ -65,6 +65,8 @@ let gameState = {
     ownedCards: [], // Array para armazenar cartas compradas com níveis
     lastTime: 0, // For delta time calculation
     gameTime: 0, // Total game time in milliseconds
+    // Ranking
+    scoreSubmitted: false, // Flag para prevenir envios múltiplos
     environmentEffects: {
         lightning: { active: false, level: 0, lastTrigger: 0 },
         meteor: { active: false, level: 0, lastTrigger: 0 },
@@ -3289,12 +3291,34 @@ function endGame() {
     document.getElementById('finalWave').textContent = `Onda Alcançada: ${gameState.wave}`;
     document.getElementById('soulsEarned').textContent = `Almas Ganhas: ${Math.floor(gameState.score / 100)}`;
     
-    // Reset ranking UI
-    document.getElementById('nameInput').classList.remove('hidden');
-    document.getElementById('scoreSubmitted').classList.add('hidden');
-    document.getElementById('playerName').value = '';
+    // Reset ranking UI completamente
+    resetRankingUI();
     
     document.getElementById('gameOver').classList.remove('hidden');
+}
+
+// Função para resetar completamente a UI do ranking
+function resetRankingUI() {
+    const nameInput = document.getElementById('nameInput');
+    const scoreSubmitted = document.getElementById('scoreSubmitted');
+    const playerName = document.getElementById('playerName');
+    const submitBtn = document.getElementById('submitScore');
+    
+    // Mostrar seção de input e esconder confirmação
+    nameInput.classList.remove('hidden');
+    scoreSubmitted.classList.add('hidden');
+    
+    // Limpar campo de nome
+    playerName.value = '';
+    
+    // Resetar botão de envio
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enviar Pontuação';
+    
+    // Resetar flag de envio
+    gameState.scoreSubmitted = false;
+    
+    console.log('UI do ranking resetada');
 }
 
 function gameLoop() {
@@ -3702,6 +3726,9 @@ document.getElementById('restartGame').addEventListener('click', () => {
     document.getElementById('gameOver').classList.add('hidden');
     document.getElementById('gameMenu').classList.remove('hidden');
     
+    // Reset ranking UI também
+    resetRankingUI();
+    
     // Reset game state completely
     gameState.running = false;
     gameState.paused = false;
@@ -3711,6 +3738,7 @@ document.getElementById('restartGame').addEventListener('click', () => {
     gameState.score = 0;
     gameState.souls = 0;
     gameState.enemiesKilled = 0;
+    gameState.scoreSubmitted = false; // Reset ranking flag
     gameState.environmentEffects = {
         lightning: { active: false, level: 0, lastTrigger: 0 },
         meteor: { active: false, level: 0, lastTrigger: 0 },
@@ -3896,7 +3924,15 @@ function displayRanking(rankings, accessCount) {
 // Event Listeners for Ranking
 document.getElementById('submitScore').addEventListener('click', async () => {
     const playerName = document.getElementById('playerName').value.trim();
+    const submitBtn = document.getElementById('submitScore');
     
+    // Verificar se já foi enviado
+    if (gameState.scoreSubmitted) {
+        alert('Pontuação já foi enviada para esta partida!');
+        return;
+    }
+    
+    // Validações
     if (!playerName) {
         alert('Por favor, digite seu nome!');
         return;
@@ -3907,17 +3943,30 @@ document.getElementById('submitScore').addEventListener('click', async () => {
         return;
     }
     
-    const submitBtn = document.getElementById('submitScore');
+    // Desabilitar botão durante envio
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
     
-    const success = await submitScore(playerName, gameState.score, gameState.wave);
-    
-    if (success) {
-        document.getElementById('nameInput').classList.add('hidden');
-        document.getElementById('scoreSubmitted').classList.remove('hidden');
-    } else {
-        alert('Erro ao enviar pontuação. Tente novamente.');
+    try {
+        const success = await submitScore(playerName, gameState.score, gameState.wave);
+        
+        if (success) {
+            // Marcar como enviado
+            gameState.scoreSubmitted = true;
+            
+            // Sucesso - mostrar confirmação
+            document.getElementById('nameInput').classList.add('hidden');
+            document.getElementById('scoreSubmitted').classList.remove('hidden');
+            console.log('Pontuação enviada com sucesso!');
+        } else {
+            throw new Error('Falha no envio da pontuação');
+        }
+    } catch (error) {
+        // Erro - resetar botão e mostrar mensagem
+        console.error('Erro ao enviar pontuação:', error);
+        alert('Erro ao enviar pontuação. Verifique sua conexão e tente novamente.');
+        
+        // Resetar estado do botão
         submitBtn.disabled = false;
         submitBtn.textContent = 'Enviar Pontuação';
     }
