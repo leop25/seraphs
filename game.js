@@ -3455,38 +3455,38 @@ canvas.addEventListener('mouseleave', (e) => {
 // Class and trait data for the new interface
 const classData = {
     wizard: {
-        name: 'Battlemage',
+        name: 'Mago de Batalha',
         icon: '🪄',
-        description: 'A balanced warrior-mage with reliable combat abilities. Masters the fundamentals of magical warfare with consistent damage output.',
+        description: 'Um guerreiro-mago equilibrado com habilidades de combate confiáveis. Domina os fundamentos da guerra mágica com dano consistente.',
         damage: '100%',
-        special: 'Normal Shot',
+        special: 'Tiro Normal',
         health: '100%',
         speed: '100%'
     },
     emerald: {
-        name: 'Seeker',
+        name: 'Rastreador',
         icon: '💚',
-        description: 'Utilizes homing magic that seeks out enemies. Slightly reduced damage but projectiles automatically track targets.',
+        description: 'Utiliza magia rastreadora que busca inimigos. Dano ligeiramente reduzido, mas projéteis seguem alvos automaticamente.',
         damage: '85%',
-        special: 'Homing',
+        special: 'Rastreamento',
         health: '100%',
         speed: '100%'
     },
     trident: {
-        name: 'Destroyer',
+        name: 'Destruidor',
         icon: '🔱',
-        description: 'Fires three projectiles in a spread pattern. Lower individual damage but excellent area coverage.',
+        description: 'Dispara três projéteis em padrão espalhado. Dano individual menor, mas excelente cobertura de área.',
         damage: '75%',
-        special: 'Triple Shot',
+        special: 'Tiro Triplo',
         health: '100%',
         speed: '100%'
     },
     boom: {
-        name: 'Demolitionist',
+        name: 'Demolidor',
         icon: '💥',
-        description: 'Explosive specialist with high damage area attacks. Projectiles explode on impact dealing splash damage.',
+        description: 'Especialista explosivo com ataques de área de alto dano. Projéteis explodem no impacto causando dano em área.',
         damage: '130%',
-        special: 'Explosive',
+        special: 'Explosivo',
         health: '100%',
         speed: '100%'
     }
@@ -3494,25 +3494,25 @@ const classData = {
 
 const traitData = {
     wizard: {
-        name: 'Balanced',
+        name: 'Equilibrado',
         icon: '🎩',
-        description: 'Standard configuration with no special modifiers. A reliable choice for consistent performance.',
+        description: 'Configuração padrão sem modificadores especiais. Uma escolha confiável para desempenho consistente.',
         health: '+0%',
         speed: '+0%',
         damage: '+0%'
     },
     helmet: {
-        name: 'Guardian',
+        name: 'Guardião',
         icon: '⛑️',
-        description: 'Enhanced defensive capabilities. Significantly increased health pool for extended survival.',
+        description: 'Capacidades defensivas aprimoradas. Vida significativamente aumentada para sobrevivência prolongada.',
         health: '+50%',
         speed: '+0%',
         damage: '+0%'
     },
     propeller: {
-        name: 'Swift',
+        name: 'Veloz',
         icon: '🚁',
-        description: 'Enhanced mobility for hit-and-run tactics. Doubled movement speed for superior positioning.',
+        description: 'Mobilidade aprimorada para táticas de ataque e fuga. Velocidade de movimento dobrada para posicionamento superior.',
         health: '+0%',
         speed: '+100%',
         damage: '+0%'
@@ -3520,7 +3520,7 @@ const traitData = {
     challenger: {
         name: 'Berserker',
         icon: '👑',
-        description: 'High-risk, high-reward combat style. Increased damage output at the cost of reduced survivability.',
+        description: 'Estilo de combate de alto risco e alta recompensa. Dano aumentado ao custo de sobrevivência reduzida.',
         health: '-25%',
         speed: '+0%',
         damage: '+50%'
@@ -3696,12 +3696,15 @@ document.getElementById('restartGame').addEventListener('click', () => {
     document.getElementById('gameOver').classList.add('hidden');
     document.getElementById('gameMenu').classList.remove('hidden');
     
-    // Reset game state
+    // Reset game state completely
     gameState.running = false;
     gameState.paused = false;
     gameState.gameTime = 0; // Reset game time
-    gameState.lastTime = 0;
+    gameState.lastTime = 0; // Reset last time
     gameState.ownedCards = []; // Clear owned cards
+    gameState.score = 0;
+    gameState.souls = 0;
+    gameState.enemiesKilled = 0;
     gameState.environmentEffects = {
         lightning: { active: false, level: 0, lastTrigger: 0 },
         meteor: { active: false, level: 0, lastTrigger: 0 },
@@ -3709,24 +3712,24 @@ document.getElementById('restartGame').addEventListener('click', () => {
         poison: { active: false, level: 0, lastTrigger: 0 },
         fire: { active: false, level: 0, lastTrigger: 0 }
     };
-    // Reset XP system - Removed since we use wave-based cards
-    // gameState.xp = 0;
-    // gameState.level = 1;
-    // gameState.xpToNext = 100;
-    // gameState.totalXpForLevel = 100;
+    
+    // Reset wave system completely
     gameState.wave = 1;
     gameState.waveStartTime = 0;
     gameState.lastEnemySpawn = 0;
-    gameState.enemySpawnRate = 800;
-    gameState.maxEnemiesThisWave = 5; // Reset enemy wave counters
+    gameState.enemySpawnRate = 800; // Reset to initial spawn rate
+    gameState.maxEnemiesThisWave = 1; // Reset to initial max enemies
     gameState.enemiesSpawnedThisWave = 0;
+    gameState.enemiesInWave = 0;
+    gameState.waveDuration = 60000;
     
+    // Reset player stats to initial values
     gameState.playerStats = {
         health: 120,
         maxHealth: 120,
-        damage: 40, // Manter o dano aumentado
+        damage: 40,
         speed: CONFIG.PLAYER_SPEED,
-        fireRate: 600,
+        fireRate: 1000, // Reset to initial fire rate
         multishot: 1,
         lifesteal: 0,
         damageReduction: 0,
@@ -3747,6 +3750,28 @@ document.getElementById('restartGame').addEventListener('click', () => {
         vampiricShots: false,
         vampiricLevel: 0
     };
+    
+    // Clear all game entities
+    bullets = [];
+    enemies = [];
+    drops = [];
+    damageIndicators = [];
+    particles = [];
+    if (enemies.bullets) enemies.bullets = [];
+    
+    // Clear environment objects
+    environmentObjects = {
+        lightning: [],
+        meteors: [],
+        thorns: [],
+        poisonClouds: [],
+        firePillars: []
+    };
+    
+    // Reset terrain
+    initializeTerrain();
+    
+    console.log('Jogo resetado completamente');
 });
 
 // Initialize
